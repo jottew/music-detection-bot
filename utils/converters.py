@@ -29,11 +29,11 @@ class URLObject:
                 if resp.status == 200:
                     return await resp.read()
                 elif resp.status == 404:
-                    raise discord.NotFound(resp, 'asset not found')
+                    raise discord.NotFound(resp, "asset not found")
                 elif resp.status == 403:
-                    raise discord.Forbidden(resp, 'cannot retrieve asset')
+                    raise discord.Forbidden(resp, "cannot retrieve asset")
                 else:
-                    raise discord.HTTPException(resp, 'failed to get asset')
+                    raise discord.HTTPException(resp, "failed to get asset")
         finally:
             if not session:
                 await _session.close()
