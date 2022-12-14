@@ -67,7 +67,13 @@ class Bot(commands.AutoShardedBot):
         )
 
     async def close(self):
-        await self.session.close()
+        try: await self.session.close()
+        except Exception as exc: traceback.print_exception(
+            type(exc),
+            exc,
+            exc.__traceback__
+        )
+
         await super().close()
 
     async def on_command_error(self, ctx: commands.Context, exc: Exception):
