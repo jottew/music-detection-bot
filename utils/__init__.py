@@ -1,1 +1,1 @@
-from .converters import FileConverter, URLObject
+from .converters import FileConverter, URLObject, FileObject

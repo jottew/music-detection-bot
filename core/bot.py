@@ -67,26 +67,21 @@ class Bot(commands.AutoShardedBot):
         )
 
     async def close(self):
-        try: await self.session.close()
-        except Exception as exc: traceback.print_exception(
-            type(exc),
-            exc,
-            exc.__traceback__
-        )
+        try:
+            await self.session.close()
+        except Exception as exc:
+            traceback.print_exception(type(exc), exc, exc.__traceback__)
 
         await super().close()
 
     async def on_command_error(self, ctx: commands.Context, exc: Exception):
-        error = traceback.format_exception(
-            type(exc),
-            exc,
-            exc.__traceback__
-        )
+        error = traceback.format_exception(type(exc), exc, exc.__traceback__)
 
         final_error = "\n".join(error)
         wrap = "```"
 
-        await ctx.reply(wrap+final_error+wrap)
+        await ctx.reply(wrap + final_error + wrap)
+
 
 async def get_prefix(bot_: Bot, message):
     prefixes = ["m!"]
@@ -99,5 +94,5 @@ bot = Bot(
     command_prefix=get_prefix,
     allowed_mentions=discord.AllowedMentions.none(),
     intents=discord.Intents.all(),
-    strip_after_prefix=True
+    strip_after_prefix=True,
 )
