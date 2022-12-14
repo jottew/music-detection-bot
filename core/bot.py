@@ -2,12 +2,15 @@ import traceback
 import discord
 import logging
 import aiohttp
+import core
 import os
 
 
 from datetime import datetime
 from discord.ext import commands
+from discord.ext.commands import Greedy, Context
 
+from typing import Literal, Optional 
 
 logger = logging.getLogger("discord")
 logger.setLevel(logging.INFO)
@@ -82,6 +85,9 @@ class Bot(commands.AutoShardedBot):
 
         await ctx.reply(wrap + final_error + wrap)
 
+    async def get_context(self, message, *, cls=core.Context):
+        return await super().get_context(message, cls=cls)
+
 
 async def get_prefix(bot_: Bot, message):
     prefixes = ["m!"]
@@ -89,10 +95,44 @@ async def get_prefix(bot_: Bot, message):
     result = commands.when_mentioned_or(*prefixes)(bot_, message)
     return result
 
-
 bot = Bot(
     command_prefix=get_prefix,
     allowed_mentions=discord.AllowedMentions.none(),
     intents=discord.Intents.all(),
     strip_after_prefix=True,
 )
+
+# stole from https://gist.github.com/AbstractUmbra/a9c188797ae194e592efe05fa129c57f
+@bot.command()
+@commands.guild_only()
+@commands.is_owner()
+async def sync(
+  ctx: Context, guilds: Greedy[discord.Object], spec: Optional[Literal["~", "*", "^"]] = None) -> None:
+    if not guilds:
+        if spec == "~":
+            synced = await ctx.bot.tree.sync(guild=ctx.guild)
+        elif spec == "*":
+            ctx.bot.tree.copy_global_to(guild=ctx.guild)
+            synced = await ctx.bot.tree.sync(guild=ctx.guild)
+        elif spec == "^":
+            ctx.bot.tree.clear_commands(guild=ctx.guild)
+            await ctx.bot.tree.sync(guild=ctx.guild)
+            synced = []
+        else:
+            synced = await ctx.bot.tree.sync()
+
+        await ctx.send(
+            f"Synced {len(synced)} commands {'globally' if spec is None else 'to the current guild.'}"
+        )
+        return
+
+    ret = 0
+    for guild in guilds:
+        try:
+            await ctx.bot.tree.sync(guild=guild)
+        except discord.HTTPException:
+            pass
+        else:
+            ret += 1
+
+    await ctx.send(f"Synced the tree to {ret}/{len(guilds)}.")

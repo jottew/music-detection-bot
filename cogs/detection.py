@@ -12,6 +12,7 @@ from core.bot import Bot
 from io import StringIO
 
 from discord.ext import commands
+from discord import app_commands
 
 
 class Detection(commands.Cog):
@@ -29,7 +30,7 @@ class Detection(commands.Cog):
             r"^(https?\:\/\/)?((www\.)?youtube\.com|youtu\.?be)\/.+$"
         )
 
-    @commands.command()
+    @commands.hybrid_command(name="detect")
     async def detect(self, ctx, attachment=None):
         msg = None
         _format = None
@@ -72,10 +73,7 @@ class Detection(commands.Cog):
                 return await ctx.send(f"stdout is empty, but stderr returned **{r2}**")
 
             if not os.path.isfile(path):
-                buf = StringIO()
-                buf.write(f"stdout:\n\n{r}\n\nstderr:\n\n{r2}")
-                buf.seek(0)
-                return await ctx.send(file=discord.File(buf, filename="error.txt"))
+                return await ctx.send(f"stdout:\n```\n{r}```\n\nstderr:\n```\n{r2}```")
 
             attachment: discord.Attachment = utils.FileObject(path)
         else:
